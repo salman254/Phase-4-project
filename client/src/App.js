@@ -6,7 +6,9 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard"; 
 import { getProfile } from "./api";
+import "./styles.css";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -53,6 +55,12 @@ function App() {
           <Route
             path="/profile"
             element={user ? <Profile user={user} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin"
+            element={
+              user && user.is_admin ? <AdminDashboard /> : <Navigate to="/login" />
+            }
           />
         </Routes>
       </div>
