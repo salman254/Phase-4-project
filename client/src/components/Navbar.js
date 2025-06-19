@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export default function Navbar() {
-  const token = localStorage.getItem("token");
+export default function Navbar({ user, setUser }) {
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    window.location.href = "/";
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -13,7 +17,7 @@ export default function Navbar() {
             <li className="nav-item">
               <Link className="nav-link" to="/">Home</Link>
             </li>
-            {token && (
+            {user && (
               <>
                 <li className="nav-item">
                   <Link className="nav-link" to="/dashboard">Dashboard</Link>
@@ -21,11 +25,16 @@ export default function Navbar() {
                 <li className="nav-item">
                   <Link className="nav-link" to="/profile">Profile</Link>
                 </li>
+                {user.is_admin && (
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/admin">Admin</Link>
+                  </li>
+                )}
               </>
             )}
           </ul>
           <ul className="navbar-nav ms-auto">
-            {!token ? (
+            {!user ? (
               <>
                 <li className="nav-item">
                   <Link className="nav-link" to="/login">Login</Link>
@@ -36,10 +45,7 @@ export default function Navbar() {
               </>
             ) : (
               <li className="nav-item">
-                <button className="btn btn-outline-danger" onClick={() => {
-                  localStorage.removeItem("token");
-                  window.location.href = "/";
-                }}>
+                <button className="btn btn-outline-danger" onClick={handleLogout}>
                   Logout
                 </button>
               </li>
