@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000"; // or http://localhost:5050 if you change port
+const API_BASE = "http://localhost:5000"; // Change if your backend uses a different port
 
 const handleResponse = async (res) => {
   if (!res.ok) {
