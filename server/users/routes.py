@@ -52,3 +52,34 @@ def reset_user(id):
     user.set_password('default123')
     db.session.commit()
     return jsonify(message='User reset')
+
+@users_bp.route('/admin/dashboard', methods=['GET'])
+@jwt_required()
+def admin_dashboard():
+    user = User.query.get(get_jwt_identity())
+    if not user.is_admin:
+        return jsonify(error='Admin access only'), 403
+
+    startups = Startup.query.all()
+    users = User.query.all()
+
+    return jsonify({
+        "startups": [
+            {
+                "id": s.id,
+                "name": s.name,
+                "category": s.category,
+                "funding_goal": s.funding_goal,
+                "current_funding": s.current_funding,
+                "owner": s.owner.username
+            } for s in startups
+        ],
+        "users": [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "is_admin": u.is_admin
+            } for u in users
+        ]
+    })
