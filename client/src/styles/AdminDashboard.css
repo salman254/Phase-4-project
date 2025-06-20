@@ -1,0 +1,16 @@
+.admin-dashboard {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+  
+  .admin-dashboard ul {
+    padding-left: 0;
+    list-style: none;
+  }
+  
+  .admin-dashboard li {
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+  }
+  
