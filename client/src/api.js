@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000"; // Change if your backend uses a different port
+const API_BASE = "http://localhost:5000";
 
 const handleResponse = async (res) => {
   if (!res.ok) {
@@ -83,6 +83,26 @@ export const invest = (token, startupId, amount) =>
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ amount }),
+    credentials: "include",
+  }).then(handleResponse);
+
+export const updateInvestment = (token, investmentId, amount) =>
+  fetch(`${API_BASE}/investments/edit/${investmentId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ amount }),
+    credentials: "include",
+  }).then(handleResponse);
+
+export const deleteInvestment = (token, investmentId) =>
+  fetch(`${API_BASE}/investments/delete/${investmentId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     credentials: "include",
   }).then(handleResponse);
 
