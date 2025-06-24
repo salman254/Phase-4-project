@@ -8,11 +8,11 @@ const handleResponse = async (res) => {
   return res.json();
 };
 
-export const register = (data) =>
+export const register = (data, isMultipart = false) =>
   fetch(`${API_BASE}/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    headers: isMultipart ? undefined : { "Content-Type": "application/json" },
+    body: isMultipart ? data : JSON.stringify(data),
     credentials: "include",
   }).then(handleResponse);
 
