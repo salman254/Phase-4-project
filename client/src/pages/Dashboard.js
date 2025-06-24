@@ -80,64 +80,82 @@ export default function Dashboard({ user }) {
 
   return (
     <div className="dashboard-container">
-      <h2>My Dashboard</h2>
+      <div className="header">
+        <img
+          src={
+            user?.profile_image
+              ? `http://localhost:5000/static/uploads/${user.profile_image}`
+              : "/static/default-avatar.png"
+          }
+          alt="avatar"
+          className="avatar"
+        />
+        <div>
+          <h2>Welcome, {user?.username || "User"}!</h2>
+          <p className="text-muted">Manage your startups and investments</p>
+        </div>
+      </div>
 
-      <div className="section">
-        <h4>Create a Startup</h4>
-        <form onSubmit={handleStartupSubmit}>
-          <input className="form-control mb-2" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          <input className="form-control mb-2" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required />
-          <input className="form-control mb-2" type="number" placeholder="Funding Goal" value={form.funding_goal} onChange={(e) => setForm({ ...form, funding_goal: e.target.value })} required />
-          <button className="btn btn-primary mb-4">Create Startup</button>
-        </form>
+      <div className="cards-container">
+        <div className="card-box">
+          <h4>Create a Startup 🚀</h4>
+          <form onSubmit={handleStartupSubmit}>
+            <input className="form-control" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <input className="form-control" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required />
+            <input className="form-control" type="number" placeholder="Funding Goal" value={form.funding_goal} onChange={(e) => setForm({ ...form, funding_goal: e.target.value })} required />
+            <button className="btn btn-primary w-100 mt-2">Create</button>
+          </form>
+        </div>
+
+        <div className="card-box">
+          <h4>Invest 💰</h4>
+          <form onSubmit={handleInvestmentSubmit}>
+            <input className="form-control" placeholder="Startup ID" value={investForm.startup_id} onChange={(e) => setInvestForm({ ...investForm, startup_id: e.target.value })} required />
+            <input className="form-control" type="number" placeholder="Amount" value={investForm.amount} onChange={(e) => setInvestForm({ ...investForm, amount: e.target.value })} required />
+            <button className="btn btn-success w-100 mt-2">Invest</button>
+          </form>
+        </div>
       </div>
 
       <div className="section">
-        <h4>My Startups</h4>
+        <h4>📊 My Startups</h4>
         {startups.length === 0 ? (
-          <p>No startups yet.</p>
+          <p className="text-muted">No startups yet.</p>
         ) : (
-          <ul className="list-group mb-4">
+          <div className="grid">
             {startups.map((s) => (
-              <li key={s.id} className="list-group-item d-flex justify-content-between align-items-center">
-                {s.name} | Goal: ${s.funding_goal} | Raised: ${s.current_funding}
-                <div>
-                  <button className="btn btn-sm btn-outline-warning me-2" onClick={() => handleEditStartup(s)}>Edit</button>
+              <div key={s.id} className="card-list">
+                <h5>{s.name}</h5>
+                <p>Category: {s.category}</p>
+                <p>Goal: ${s.funding_goal}</p>
+                <p>Raised: ${s.current_funding}</p>
+                <div className="d-flex justify-content-between mt-2">
+                  <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditStartup(s)}>Edit</button>
                   <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteStartup(s.id)}>Delete</button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
       <div className="section">
-        <h4>Make an Investment</h4>
-        <form onSubmit={handleInvestmentSubmit}>
-          <input className="form-control mb-2" placeholder="Startup ID" value={investForm.startup_id} onChange={(e) => setInvestForm({ ...investForm, startup_id: e.target.value })} required />
-          <input className="form-control mb-2" placeholder="Amount" type="number" value={investForm.amount} onChange={(e) => setInvestForm({ ...investForm, amount: e.target.value })} required />
-          <button className="btn btn-success mb-4">Invest</button>
-        </form>
-      </div>
-
-      <div className="section">
-        <h4>My Investments</h4>
+        <h4>📈 My Investments</h4>
         {investments.length === 0 ? (
-          <p>No investments made yet.</p>
+          <p className="text-muted">No investments made yet.</p>
         ) : (
-          <ul className="list-group">
+          <div className="grid">
             {investments.map((inv) => (
-              <li key={inv.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>
-                  Invested ${inv.amount} in <strong>{inv.startup}</strong> on {new Date(inv.date_invested).toLocaleDateString()}
-                </span>
-                <div>
-                  <button className="btn btn-sm btn-outline-warning me-2" onClick={() => handleEditInvestment(inv)}>Edit</button>
+              <div key={inv.id} className="card-list">
+                <p><strong>${inv.amount}</strong> in {inv.startup}</p>
+                <small>{new Date(inv.date_invested).toLocaleDateString()}</small>
+                <div className="d-flex justify-content-between mt-2">
+                  <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditInvestment(inv)}>Edit</button>
                   <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteInvestment(inv.id)}>Delete</button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
@@ -150,22 +168,20 @@ export default function Dashboard({ user }) {
       )}
 
       {editingInvestment && (
-        <div className="modal d-block bg-dark bg-opacity-50">
-          <div className="modal-dialog">
-            <div className="modal-content p-4">
-              <h5>Edit Investment</h5>
-              <form onSubmit={handleUpdateInvestment}>
-                <input
-                  className="form-control mb-2"
-                  type="number"
-                  value={editAmount}
-                  onChange={(e) => setEditAmount(e.target.value)}
-                  required
-                />
-                <button type="submit" className="btn btn-success me-2">Save</button>
-                <button type="button" className="btn btn-secondary" onClick={() => setEditingInvestment(null)}>Cancel</button>
-              </form>
-            </div>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h5>Edit Investment</h5>
+            <form onSubmit={handleUpdateInvestment}>
+              <input
+                className="form-control mb-2"
+                type="number"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
+                required
+              />
+              <button type="submit" className="btn btn-success me-2">Save</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setEditingInvestment(null)}>Cancel</button>
+            </form>
           </div>
         </div>
       )}
