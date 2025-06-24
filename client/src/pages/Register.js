@@ -1,16 +1,36 @@
 import React, { useState } from "react";
 import { register } from "../api";
+import "../styles/Register.css";
 
 const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState(""); // renamed from `name`
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+  const [profileImage, setProfileImage] = useState(null);
   const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = (e) => {
+    setProfileImage(e.target.files[0]);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = new FormData();
+    data.append("username", form.username);
+    data.append("email", form.email);
+    data.append("password", form.password);
+    if (profileImage) {
+      data.append("profile_image", profileImage);
+    }
+
     try {
-      await register({ username, email, password }); // send `username`
+      await register(data, true); // true = multipart
       window.location.href = "/login";
     } catch (err) {
       setError(err.message);
@@ -18,41 +38,43 @@ const Register = () => {
   };
 
   return (
-    <div>
+    <div className="register-container">
       <h2>Register</h2>
       {error && <p className="text-danger">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label>Username</label>
-          <input
-            type="text"
-            className="form-control"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label>Email</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label>Password</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">Register</button>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <input
+          className="form-control mb-2"
+          placeholder="Username"
+          name="username"
+          value={form.username}
+          onChange={handleChange}
+          required
+        />
+        <input
+          className="form-control mb-2"
+          placeholder="Email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          required
+        />
+        <input
+          className="form-control mb-2"
+          placeholder="Password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={handleChange}
+          required
+        />
+        <input
+          className="form-control mb-3"
+          type="file"
+          onChange={handleImageChange}
+          accept="image/*"
+        />
+        <button className="btn btn-primary w-100">Register</button>
       </form>
     </div>
   );
