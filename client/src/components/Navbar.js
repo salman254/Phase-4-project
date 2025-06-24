@@ -8,6 +8,10 @@ export default function Navbar({ user, setUser }) {
     window.location.href = "/";
   };
 
+  const avatarUrl = user?.profile_image
+    ? `http://localhost:5000/static/uploads/${user.profile_image}`
+    : `http://localhost:5000/static/uploads/default-avatar.png`;
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container">
@@ -33,7 +37,21 @@ export default function Navbar({ user, setUser }) {
               </>
             )}
           </ul>
-          <ul className="navbar-nav ms-auto">
+          <ul className="navbar-nav ms-auto align-items-center">
+            {user && (
+              <li className="nav-item me-2">
+                <img
+                  src={avatarUrl}
+                  alt="avatar"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              </li>
+            )}
             {!user ? (
               <>
                 <li className="nav-item">
