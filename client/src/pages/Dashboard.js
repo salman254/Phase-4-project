@@ -1,212 +1,265 @@
 import React, { useEffect, useState } from "react";
 import {
+  getProfile,
   getMyStartups,
-  getAllStartups,
   getMyInvestments,
   createStartup,
-  invest,
   updateStartup,
   deleteStartup,
+  invest,
+  getAllStartups,
   updateInvestment,
   deleteInvestment,
 } from "../api";
-import EditStartupModal from "../components/EditStartupModal";
 import "../styles/Dashboard.css";
 
-export default function Dashboard({ user }) {
-  const [startups, setStartups] = useState([]);
-  const [allStartups, setAllStartups] = useState([]);
-  const [investments, setInvestments] = useState([]);
+export default function Dashboard() {
+  const token = localStorage.getItem("token");
+  const [user, setUser] = useState(null);
+  const [myStartups, setMyStartups] = useState([]);
+  const [myInvestments, setMyInvestments] = useState([]);
+  const [publicStartups, setPublicStartups] = useState([]);
   const [form, setForm] = useState({ name: "", category: "", funding_goal: "" });
   const [investForm, setInvestForm] = useState({ startup_id: "", amount: "" });
-  const [editingStartup, setEditingStartup] = useState(null);
-  const [editingInvestment, setEditingInvestment] = useState(null);
-  const [editAmount, setEditAmount] = useState("");
-
-  const token = localStorage.getItem("token");
+  const [editing, setEditing] = useState(null);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const loadData = async () => {
+      try {
+        const profile = await getProfile(token);
+        const startups = await getMyStartups(token);
+        const investments = await getMyInvestments(token);
+        const allStartups = await getAllStartups(token);
 
-  const loadData = async () => {
-    setStartups(await getMyStartups(token));
-    setInvestments(await getMyInvestments(token));
-    setAllStartups(await getAllStartups());
+        setUser(profile);
+        setMyStartups(startups);
+        setMyInvestments(investments);
+        // Exclude user's own startups from the investable list
+        setPublicStartups(allStartups.filter(s => s.owner !== profile.username));
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+    loadData();
+  }, [token]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editing) {
+        await updateStartup(token, editing, form);
+      } else {
+        await createStartup(token, form);
+      }
+      setForm({ name: "", category: "", funding_goal: "" });
+      setEditing(null);
+      const startups = await getMyStartups(token);
+      const allStartups = await getAllStartups(token);
+      setMyStartups(startups);
+      setPublicStartups(allStartups.filter(s => s.owner !== user.username));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const handleStartupSubmit = async (e) => {
-    e.preventDefault();
-    await createStartup(token, form);
-    setForm({ name: "", category: "", funding_goal: "" });
-    loadData();
+  const handleEdit = (startup) => {
+    setForm({
+      name: startup.name,
+      category: startup.category,
+      funding_goal: startup.funding_goal,
+    });
+    setEditing(startup.id);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteStartup(token, id);
+      const startups = await getMyStartups(token);
+      const allStartups = await getAllStartups(token);
+      setMyStartups(startups);
+      setPublicStartups(allStartups.filter(s => s.owner !== user.username));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
-    await invest(token, investForm.startup_id, parseFloat(investForm.amount));
-    setInvestForm({ startup_id: "", amount: "" });
-    loadData();
+    try {
+      await invest(token, investForm.startup_id, parseFloat(investForm.amount));
+      setInvestForm({ startup_id: "", amount: "" });
+      const investments = await getMyInvestments(token);
+      const allStartups = await getAllStartups(token);
+      setMyInvestments(investments);
+      setPublicStartups(allStartups.filter(s => s.owner !== user.username));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const handleEditStartup = (startup) => setEditingStartup(startup);
-
-  const handleDeleteStartup = async (id) => {
-    await deleteStartup(token, id);
-    loadData();
-  };
-
-  const handleUpdateStartup = async (id, updatedData) => {
-    await updateStartup(token, id, updatedData);
-    setEditingStartup(null);
-    loadData();
-  };
-
-  const handleEditInvestment = (investment) => {
-    setEditingInvestment(investment);
-    setEditAmount(investment.amount);
-  };
-
-  const handleUpdateInvestment = async (e) => {
-    e.preventDefault();
-    await updateInvestment(token, editingInvestment.id, parseFloat(editAmount));
-    setEditingInvestment(null);
-    setEditAmount("");
-    loadData();
+  const handleUpdateInvestment = async (id, newAmount) => {
+    try {
+      await updateInvestment(token, id, parseFloat(newAmount));
+      const investments = await getMyInvestments(token);
+      const allStartups = await getAllStartups(token);
+      setMyInvestments(investments);
+      setPublicStartups(allStartups.filter(s => s.owner !== user.username));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const handleDeleteInvestment = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this investment?")) return;
-    await deleteInvestment(token, id);
-    loadData();
+    try {
+      await deleteInvestment(token, id);
+      const investments = await getMyInvestments(token);
+      const allStartups = await getAllStartups(token);
+      setMyInvestments(investments);
+      setPublicStartups(allStartups.filter(s => s.owner !== user.username));
+    } catch (err) {
+      alert(err.message);
+    }
   };
+
+  if (!user) return <p>Loading...</p>;
 
   return (
     <div className="dashboard-container">
       <div className="header">
         <img
-          src={
-            user?.profile_image
-              ? `http://localhost:5000/${user.profile_image}`
-              : "/static/default-avatar.png"
-          }
+          src={`http://localhost:5000/${user.profile_image || "static/uploads/default-avatar.png"}`}
           alt="avatar"
           className="avatar"
         />
         <div>
-          <h2>Welcome, {user?.username || "User"}!</h2>
-          <p className="text-muted">Manage your startups and investments</p>
+          <h2>Welcome, {user.username}!</h2>
+          <p>Manage your startups and investments</p>
         </div>
       </div>
 
-      <div className="cards-container">
-        <div className="card-box">
-          <h4>Create a Startup 🚀</h4>
-          <form onSubmit={handleStartupSubmit}>
-            <input className="form-control" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-            <input className="form-control" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required />
-            <input className="form-control" type="number" placeholder="Funding Goal" value={form.funding_goal} onChange={(e) => setForm({ ...form, funding_goal: e.target.value })} required />
-            <button className="btn btn-primary w-100 mt-2">Create</button>
-          </form>
-        </div>
-
-        <div className="card-box">
-          <h4>Invest 💰</h4>
-          <form onSubmit={handleInvestmentSubmit}>
-            <input className="form-control" placeholder="Startup ID" value={investForm.startup_id} onChange={(e) => setInvestForm({ ...investForm, startup_id: e.target.value })} required />
-            <input className="form-control" type="number" placeholder="Amount" value={investForm.amount} onChange={(e) => setInvestForm({ ...investForm, amount: e.target.value })} required />
-            <button className="btn btn-success w-100 mt-2">Invest</button>
-          </form>
-        </div>
-      </div>
-
-      <div className="section">
-        <h4>📊 My Startups</h4>
-        {startups.length === 0 ? (
-          <p className="text-muted">No startups yet.</p>
-        ) : (
-          <div className="grid">
-            {startups.map((s) => (
-              <div key={s.id} className="card-list">
-                <h5>{s.name}</h5>
-                <p>Category: {s.category}</p>
-                <p>Goal: ${s.funding_goal}</p>
-                <p>Raised: ${s.current_funding}</p>
-                <div className="d-flex justify-content-between mt-2">
-                  <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditStartup(s)}>Edit</button>
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteStartup(s.id)}>Delete</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="section">
-        <h4>📈 My Investments</h4>
-        {investments.length === 0 ? (
-          <p className="text-muted">No investments made yet.</p>
-        ) : (
-          <div className="grid">
-            {investments.map((inv) => (
-              <div key={inv.id} className="card-list">
-                <p><strong>${inv.amount}</strong> in {inv.startup_name}</p>
-                <small>{new Date(inv.date_invested).toLocaleDateString()}</small>
-                <div className="d-flex justify-content-between mt-2">
-                  <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditInvestment(inv)}>Edit</button>
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteInvestment(inv.id)}>Delete</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="section">
-        <h4>🌍 All Public Startups</h4>
-        {allStartups.length === 0 ? (
-          <p className="text-muted">No startups available yet.</p>
-        ) : (
-          <div className="grid">
-            {allStartups.map((s) => (
-              <div key={s.id} className="card-list">
-                <h5>{s.name}</h5>
-                <p>Category: {s.category}</p>
-                <p>Goal: ${s.funding_goal}</p>
-                <p>Raised: ${s.current_funding}</p>
-                <p className="text-muted">By: {s.owner}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {editingStartup && (
-        <EditStartupModal
-          startup={editingStartup}
-          onClose={() => setEditingStartup(null)}
-          onSave={handleUpdateStartup}
+      <form onSubmit={handleSubmit} className="card-box">
+        <h4>{editing ? "Edit Startup" : "Create a Startup"} 🚀</h4>
+        <input
+          className="form-control"
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
-      )}
+        <input
+          className="form-control"
+          placeholder="Category"
+          value={form.category}
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
+        />
+        <input
+          className="form-control"
+          placeholder="Funding Goal"
+          value={form.funding_goal}
+          onChange={(e) => setForm({ ...form, funding_goal: e.target.value })}
+        />
+        <button className="btn btn-primary" type="submit">
+          {editing ? "Update" : "Create"}
+        </button>
+      </form>
 
-      {editingInvestment && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h5>Edit Investment</h5>
-            <form onSubmit={handleUpdateInvestment}>
-              <input
-                className="form-control mb-2"
-                type="number"
-                value={editAmount}
-                onChange={(e) => setEditAmount(e.target.value)}
-                required
-              />
-              <button type="submit" className="btn btn-success me-2">Save</button>
-              <button type="button" className="btn btn-secondary" onClick={() => setEditingInvestment(null)}>Cancel</button>
-            </form>
-          </div>
+      <form onSubmit={handleInvestmentSubmit} className="card-box">
+        <h4>Invest 💰</h4>
+        <select
+          className="form-control"
+          value={investForm.startup_id}
+          onChange={(e) => setInvestForm({ ...investForm, startup_id: e.target.value })}
+        >
+          <option value="">Select a startup</option>
+          {publicStartups.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name} — by {s.owner}
+            </option>
+          ))}
+        </select>
+        <input
+          className="form-control"
+          placeholder="Amount"
+          value={investForm.amount}
+          onChange={(e) => setInvestForm({ ...investForm, amount: e.target.value })}
+        />
+        <button className="btn btn-success">Invest</button>
+      </form>
+
+      <div className="section">
+        <h3>📊 My Startups</h3>
+        <div className="grid">
+          {myStartups.map((s) => (
+            <div key={s.id} className="card-list">
+              <h5>{s.name}</h5>
+              <p>Category: {s.category}</p>
+              <p>Goal: ${s.funding_goal}</p>
+              <p>Raised: ${s.current_funding}</p>
+              <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(s)}>
+                Edit
+              </button>
+              <button className="btn btn-sm btn-danger" onClick={() => handleDelete(s.id)}>
+                Delete
+              </button>
+            </div>
+          ))}
+          {myStartups.length === 0 && <p>No startups yet.</p>}
         </div>
-      )}
+      </div>
+
+      <div className="section">
+        <h3>📈 My Investments</h3>
+        <div className="grid">
+          {myInvestments.map((inv) => (
+            <div key={inv.id} className="card-list">
+              <p>
+                <strong>${inv.amount}</strong> in <strong>{inv.startup_name}</strong>
+              </p>
+              <p>{new Date(inv.date_invested).toLocaleDateString()}</p>
+              <div className="d-flex gap-2">
+                <input
+                  className="form-control form-control-sm"
+                  placeholder="New Amount"
+                  onChange={(e) =>
+                    setMyInvestments((prev) =>
+                      prev.map((i) =>
+                        i.id === inv.id ? { ...i, newAmount: e.target.value } : i
+                      )
+                    )
+                  }
+                />
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => handleUpdateInvestment(inv.id, inv.newAmount)}
+                >
+                  Update
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => handleDeleteInvestment(inv.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          {myInvestments.length === 0 && <p>No investments made yet.</p>}
+        </div>
+      </div>
+
+      <div className="section">
+        <h3>🌍 All Public Startups</h3>
+        <div className="grid">
+          {publicStartups.map((s) => (
+            <div key={s.id} className="card-list">
+              <h5>{s.name}</h5>
+              <p>Category: {s.category}</p>
+              <p>Goal: ${s.funding_goal}</p>
+              <p>Raised: ${s.current_funding}</p>
+              <p>By: {s.owner}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

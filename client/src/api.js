@@ -3,7 +3,7 @@ const API_BASE = "http://localhost:5000";
 const handleResponse = async (res) => {
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: "Unknown error" }));
-    throw new Error(error.message || "Request failed");
+    throw new Error(error.message || error.error || "Request failed");
   }
   return res.json();
 };
@@ -44,9 +44,13 @@ export const getMyStartups = (token) =>
     credentials: "include",
   }).then(handleResponse);
 
-export const getAllStartups = () =>
+export const getAllStartups = (token) =>
   fetch(`${API_BASE}/startups/`, {
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
   }).then(handleResponse);
 
 export const createStartup = (token, data) =>
@@ -92,7 +96,7 @@ export const invest = (token, startupId, amount) =>
   }).then(handleResponse);
 
 export const updateInvestment = (token, investmentId, amount) =>
-  fetch(`${API_BASE}/investments/edit/${investmentId}`, {
+  fetch(`${API_BASE}/investments/${investmentId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
