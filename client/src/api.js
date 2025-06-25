@@ -44,6 +44,11 @@ export const getMyStartups = (token) =>
     credentials: "include",
   }).then(handleResponse);
 
+export const getAllStartups = () =>
+  fetch(`${API_BASE}/startups/`, {
+    method: "GET",
+  }).then(handleResponse);
+
 export const createStartup = (token, data) =>
   fetch(`${API_BASE}/startups/`, {
     method: "POST",
@@ -87,7 +92,7 @@ export const invest = (token, startupId, amount) =>
   }).then(handleResponse);
 
 export const updateInvestment = (token, investmentId, amount) =>
-  fetch(`${API_BASE}/investments/${investmentId}`, {
+  fetch(`${API_BASE}/investments/edit/${investmentId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

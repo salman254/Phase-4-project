@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   getMyStartups,
+  getAllStartups,
   getMyInvestments,
   createStartup,
   invest,
@@ -14,6 +15,7 @@ import "../styles/Dashboard.css";
 
 export default function Dashboard({ user }) {
   const [startups, setStartups] = useState([]);
+  const [allStartups, setAllStartups] = useState([]);
   const [investments, setInvestments] = useState([]);
   const [form, setForm] = useState({ name: "", category: "", funding_goal: "" });
   const [investForm, setInvestForm] = useState({ startup_id: "", amount: "" });
@@ -30,6 +32,7 @@ export default function Dashboard({ user }) {
   const loadData = async () => {
     setStartups(await getMyStartups(token));
     setInvestments(await getMyInvestments(token));
+    setAllStartups(await getAllStartups());
   };
 
   const handleStartupSubmit = async (e) => {
@@ -84,7 +87,7 @@ export default function Dashboard({ user }) {
         <img
           src={
             user?.profile_image
-              ? `http://localhost:5000/static/uploads/${user.profile_image}`
+              ? `http://localhost:5000/${user.profile_image}`
               : "/static/default-avatar.png"
           }
           alt="avatar"
@@ -153,6 +156,25 @@ export default function Dashboard({ user }) {
                   <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditInvestment(inv)}>Edit</button>
                   <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteInvestment(inv.id)}>Delete</button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="section">
+        <h4>🌍 All Public Startups</h4>
+        {allStartups.length === 0 ? (
+          <p className="text-muted">No startups available yet.</p>
+        ) : (
+          <div className="grid">
+            {allStartups.map((s) => (
+              <div key={s.id} className="card-list">
+                <h5>{s.name}</h5>
+                <p>Category: {s.category}</p>
+                <p>Goal: ${s.funding_goal}</p>
+                <p>Raised: ${s.current_funding}</p>
+                <p className="text-muted">By: {s.owner}</p>
               </div>
             ))}
           </div>

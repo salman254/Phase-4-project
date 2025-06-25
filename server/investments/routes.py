@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..extensions import db
-from ..models import Investment, Startup, User
+from server.extensions import db
+from server.models import Investment, Startup
 
 investments_bp = Blueprint('investments', __name__)
 
@@ -14,6 +14,10 @@ def invest(startup_id):
 
     if not isinstance(amount, (int, float)) or amount <= 0:
         return jsonify(error='Invalid amount'), 400
+
+    # prevent self-investment
+    if startup.user_id == user_id:
+        return jsonify(error="You can't invest in your own startup."), 403
 
     investment = Investment(user_id=user_id, startup_id=startup_id, amount=amount)
     startup.current_funding += amount
@@ -35,12 +39,13 @@ def my_investments():
 
     return jsonify([{
         'id': inv.id,
-        'startup_name': inv.startup.name,  
+        'startup_id': inv.startup.id,
+        'startup_name': inv.startup.name,
         'amount': inv.amount,
         'date_invested': inv.date_invested.isoformat()
     } for inv in investments])
 
-@investments_bp.route('/<int:investment_id>', methods=['PUT'])
+@investments_bp.route('/edit/<int:investment_id>', methods=['PUT'])
 @jwt_required()
 def edit_investment(investment_id):
     user_id = get_jwt_identity()
@@ -50,11 +55,9 @@ def edit_investment(investment_id):
         return jsonify(error='Unauthorized'), 403
 
     new_amount = request.json.get('amount')
-
     if not isinstance(new_amount, (int, float)) or new_amount <= 0:
         return jsonify(error='Invalid amount'), 400
 
-    # Update funding
     diff = new_amount - investment.amount
     investment.startup.current_funding += diff
     investment.amount = new_amount
@@ -79,4 +82,5 @@ def delete_investment(investment_id):
     investment.startup.current_funding -= investment.amount
     db.session.delete(investment)
     db.session.commit()
+
     return jsonify(message='Investment deleted')
