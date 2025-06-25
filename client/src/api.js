@@ -87,7 +87,7 @@ export const invest = (token, startupId, amount) =>
   }).then(handleResponse);
 
 export const updateInvestment = (token, investmentId, amount) =>
-  fetch(`${API_BASE}/investments/edit/${investmentId}`, {
+  fetch(`${API_BASE}/investments/${investmentId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
