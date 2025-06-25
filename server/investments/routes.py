@@ -27,7 +27,6 @@ def invest(startup_id):
         new_funding=startup.current_funding
     )
 
-
 @investments_bp.route('/my-investments', methods=['GET'])
 @jwt_required()
 def my_investments():
@@ -36,11 +35,10 @@ def my_investments():
 
     return jsonify([{
         'id': inv.id,
-        'startup': inv.startup.name,
+        'startup_name': inv.startup.name,  
         'amount': inv.amount,
         'date_invested': inv.date_invested.isoformat()
     } for inv in investments])
-
 
 @investments_bp.route('/<int:investment_id>', methods=['PUT'])
 @jwt_required()
@@ -69,7 +67,6 @@ def edit_investment(investment_id):
         new_total_funding=investment.startup.current_funding
     )
 
-
 @investments_bp.route('/delete/<int:investment_id>', methods=['DELETE'])
 @jwt_required()
 def delete_investment(investment_id):
@@ -79,9 +76,7 @@ def delete_investment(investment_id):
     if investment.user_id != user_id:
         return jsonify(error='Unauthorized'), 403
 
-    # Subtract the investment amount from current_funding before deleting
     investment.startup.current_funding -= investment.amount
-
     db.session.delete(investment)
     db.session.commit()
     return jsonify(message='Investment deleted')
