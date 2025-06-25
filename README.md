@@ -60,13 +60,13 @@ Startup-Simulator/
 
 ##  Features
 
-- 🔐 **JWT Authentication:** Secure login and registration system with token-based auth
-- 📊 **Startup Management:** Users can create, edit, and delete their own startups
-- 💰 **Investments:** Users can invest in other startups (excluding their own)
-- 🧮 **Live Funding Tracking:** Displays how much has been raised toward funding goals
-- 🖼️ **Profile Avatars:** Optional profile picture upload during registration
-- 🌍 **Public Startup Gallery:** View all startups by other users
-- 📈 **Dashboard:** Personalized interface for startup creators and investors
+- **JWT Authentication:** Secure login and registration system with token-based auth
+- **Startup Management:** Users can create, edit, and delete their own startups
+- **Investments:** Users can invest in other startups (excluding their own)
+- **Live Funding Tracking:** Displays how much has been raised toward funding goals
+- **Profile Avatars:** Optional profile picture upload during registration
+- **Public Startup Gallery:** View all startups by other users
+- **Dashboard:** Personalized interface for startup creators and investors
 
 ---
 
@@ -124,6 +124,6 @@ This project is open source under the MIT License.
 
  ###  Author
 
-Built with love by Salman — student @ Moringa School, Kenya 🇰🇪
+Built with love by Ibrahim Mohamed — student @ Moringa School, Kenya 🇰🇪
 Email: salmaanmohamed700@gmail.com
 
