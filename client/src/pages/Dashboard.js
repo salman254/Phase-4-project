@@ -1,3 +1,4 @@
+// ...same imports
 import React, { useEffect, useState } from "react";
 import {
   getProfile,
@@ -35,7 +36,7 @@ export default function Dashboard() {
         setMyInvestments(investments);
         setPublicStartups(allStartups.filter(s => s.owner !== profile.username));
       } catch (err) {
-        alert(err.message);
+        console.error("Dashboard init error:", err.message);
       }
     };
     loadData();
@@ -56,7 +57,7 @@ export default function Dashboard() {
       setMyStartups(startups);
       setPublicStartups(allStartups.filter(s => s.owner !== user.username));
     } catch (err) {
-      alert(err.message);
+      console.error("Submit error:", err.message);
     }
   };
 
@@ -77,7 +78,7 @@ export default function Dashboard() {
       setMyStartups(startups);
       setPublicStartups(allStartups.filter(s => s.owner !== user.username));
     } catch (err) {
-      alert(err.message);
+      console.error("Delete error:", err.message);
     }
   };
 
@@ -91,7 +92,7 @@ export default function Dashboard() {
       setMyInvestments(investments);
       setPublicStartups(allStartups.filter(s => s.owner !== user.username));
     } catch (err) {
-      alert(err.message);
+      console.error("Investment error:", err.message);
     }
   };
 
@@ -103,7 +104,7 @@ export default function Dashboard() {
       setMyInvestments(investments);
       setPublicStartups(allStartups.filter(s => s.owner !== user.username));
     } catch (err) {
-      alert(err.message);
+      console.error("Investment delete error:", err.message);
     }
   };
 
