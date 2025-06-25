@@ -147,7 +147,7 @@ export default function Dashboard({ user }) {
           <div className="grid">
             {investments.map((inv) => (
               <div key={inv.id} className="card-list">
-                <p><strong>${inv.amount}</strong> in {inv.startup}</p>
+                <p><strong>${inv.amount}</strong> in {inv.startup_name}</p>
                 <small>{new Date(inv.date_invested).toLocaleDateString()}</small>
                 <div className="d-flex justify-content-between mt-2">
                   <button className="btn btn-sm btn-outline-warning" onClick={() => handleEditInvestment(inv)}>Edit</button>
