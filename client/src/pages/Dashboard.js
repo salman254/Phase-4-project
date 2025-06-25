@@ -8,7 +8,6 @@ import {
   deleteStartup,
   invest,
   getAllStartups,
-  updateInvestment,
   deleteInvestment,
 } from "../api";
 import "../styles/Dashboard.css";
@@ -34,7 +33,6 @@ export default function Dashboard() {
         setUser(profile);
         setMyStartups(startups);
         setMyInvestments(investments);
-        // Exclude user's own startups from the investable list
         setPublicStartups(allStartups.filter(s => s.owner !== profile.username));
       } catch (err) {
         alert(err.message);
@@ -88,18 +86,6 @@ export default function Dashboard() {
     try {
       await invest(token, investForm.startup_id, parseFloat(investForm.amount));
       setInvestForm({ startup_id: "", amount: "" });
-      const investments = await getMyInvestments(token);
-      const allStartups = await getAllStartups(token);
-      setMyInvestments(investments);
-      setPublicStartups(allStartups.filter(s => s.owner !== user.username));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleUpdateInvestment = async (id, newAmount) => {
-    try {
-      await updateInvestment(token, id, parseFloat(newAmount));
       const investments = await getMyInvestments(token);
       const allStartups = await getAllStartups(token);
       setMyInvestments(investments);
@@ -215,31 +201,12 @@ export default function Dashboard() {
                 <strong>${inv.amount}</strong> in <strong>{inv.startup_name}</strong>
               </p>
               <p>{new Date(inv.date_invested).toLocaleDateString()}</p>
-              <div className="d-flex gap-2">
-                <input
-                  className="form-control form-control-sm"
-                  placeholder="New Amount"
-                  onChange={(e) =>
-                    setMyInvestments((prev) =>
-                      prev.map((i) =>
-                        i.id === inv.id ? { ...i, newAmount: e.target.value } : i
-                      )
-                    )
-                  }
-                />
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => handleUpdateInvestment(inv.id, inv.newAmount)}
-                >
-                  Update
-                </button>
-                <button
-                  className="btn btn-sm btn-outline-danger"
-                  onClick={() => handleDeleteInvestment(inv.id)}
-                >
-                  Delete
-                </button>
-              </div>
+              <button
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => handleDeleteInvestment(inv.id)}
+              >
+                Delete
+              </button>
             </div>
           ))}
           {myInvestments.length === 0 && <p>No investments made yet.</p>}
